@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded shadow-md w-96">
+        <h1 class="text-2xl font-semibold mb-4">Todo List</h1>
+
+        <div class="mb-4">
+            <input type="text" id="todoInput" class="p-2 border rounded" placeholder="Add a new todo">
+            <input type="text" id="descriptionInput" class="p-2 border rounded mt-2" placeholder="Add a description">
+            <button onclick="addTodo()" class="px-4 bg-blue-500 text-white rounded">Add</button>
+        </div>
+
+        <!-- Todo List -->
+        <ul id="todoList" class="list-decimal pl-6">
+            <!-- Todos will be added dynamically here with js -->
+        </ul>
+    </div>
+
+    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded shadow-md w-96">
+            <h1 class="text-2xl font-semibold mb-4">Edit Todo</h1>
+            <label for="newTitle" class="block text-sm font-medium text-gray-700">New Title:</label>
+            <input type="text" id="newTitle" class="p-2 border rounded mb-2" placeholder="Enter new title">
+            <label for="newDescription" class="block text-sm font-medium text-gray-700">New Description:</label>
+            <input type="text" id="newDescription" class="p-2 border rounded mb-2" placeholder="Enter new description">
+            <button onclick="submitEditTodo()" class="px-4 bg-blue-500 text-white rounded">Save</button>
+            <button onclick="closeEditModal()" class="px-4 ml-2 bg-gray-500 text-white rounded">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        async function fetchTodos() {
+            const response = await fetch('http://127.0.0.1:8000/api/todo/alltodos');
+            const todos = await response.json();
+            const todoList = document.getElementById('todoList');
+
+            todoList.innerHTML = '';
+
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${todo.title}</strong> - ${todo.description} 
+                            <button onclick="editTodo(${todo.id})" class="ml-2 text-blue-500"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteTodo(${todo.id})" class="ml-2 text-red-500"><i class="fas fa-trash-alt"></i></button>`;
+                todoList.appendChild(li);
+            });
+        }
+
+        async function addTodo() {
+            const todoInput = document.getElementById('todoInput');
+            const descriptionInput = document.getElementById('descriptionInput');
+            const title = todoInput.value;
+            const description = descriptionInput.value;
+
+            if (title.trim() !== '') {
+                const response = await fetch('http://127.0.0.1:8000/api/todo/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                    }),
+                });
+
+                if (response.ok) {
+                    fetchTodos();
+                } else {
+                    console.error('Failed to add todo');
+                }
+                todoInput.value = '';
+                descriptionInput.value = '';
+            }
+        }
+
+        let currentEditId; // Variable to store the currently editing todo id
+
+    async function editTodo(id) {
+        // Store the id of the todo being edited
+        currentEditId = id;
+
+        // Show the edit modal
+        document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        // Clear input fields and hide the edit modal
+        document.getElementById('newTitle').value = '';
+        document.getElementById('newDescription').value = '';
+        document.getElementById('editModal').classList.add('hidden');
+    }
+
+    async function submitEditTodo() {
+        const newTitle = document.getElementById('newTitle').value;
+        const newDescription = document.getElementById('newDescription').value;
+
+        if (newTitle.trim() !== '') {
+            const response = await fetch(`http://127.0.0.1:8000/api/todo/update/${currentEditId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: newTitle,
+                    description: newDescription,
+                }),
+            });
+
+            if (response.ok) {
+                fetchTodos();
+                closeEditModal();
+            } else {
+                console.error(`Failed to edit todo with id ${currentEditId}`);
+            }
+        }
+    }
+
+        async function deleteTodo(id) {
+            const response = await fetch(`http://127.0.0.1:8000/api/todo/delete/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                fetchTodos();
+            } else {
+                console.error(`Failed to delete todo with id ${id}`);
+            }
+        }
+
+        fetchTodos();
+
+    </script>
+</body>
+
+</html>
