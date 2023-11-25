@@ -4,7 +4,7 @@
 This is a simple todo app using FastApi and SqlLite
 
 ## Demo Video
-[![Demo Video](https://img.youtube.com/vi/9Z3Z3YQ4Zqk/0.jpg)](https://www.youtube.com/watch?v=9Z3Z3YQ4Zqk)
+[![Demo Video](https://github.com/bhataasim1/Todo-FastApi/blob/main/Routes.png)](https://github.com/bhataasim1/Todo-FastApi/blob/main/Demo%20Video.webm)
 
 ## Installation
 1. Clone the repo
