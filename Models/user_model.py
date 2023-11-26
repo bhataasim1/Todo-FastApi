@@ -1,13 +1,12 @@
 from tortoise.models import Model
 from tortoise import fields
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
 
 class User(Model):
-    __tablename__ = "user"
-
     id = fields.IntField(pk=True)
-    username = fields.CharField(max_length=100, unique=True)
+    username = fields.CharField(max_length=20, unique=True, min_length=5)
     email = fields.CharField(max_length=100, unique=True)
-    password = fields.CharField(max_length=100)
+    password = fields.CharField(max_length=100, min_length=5)
     # todo_table = relationship("Todo", back_populates="creator")
+
+    class Meta:
+        table = "user"

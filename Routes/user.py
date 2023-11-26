@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from Models.user_model import User
 
 router = APIRouter(prefix="/user", tags=["User"])
 templates = Jinja2Templates(directory="Frontend")
-
 
 @router.post("/register")
 async def register(request: Request):
@@ -14,8 +13,13 @@ async def register(request: Request):
     email = form_data.get("email")
     password = form_data.get("password")
 
+    existing_user = await User.get_or_none(email=email)
+    if existing_user:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "User already exists"})
+
     await User.create(username=username, email=email, password=password)
-    return templates.TemplateResponse("login.html", {"request": request})
+
+    return RedirectResponse(url="/login", status_code=302)
 
 
 @router.post("/login")
